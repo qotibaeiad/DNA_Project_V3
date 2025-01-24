@@ -1,0 +1,4 @@
+﻿  Pr1_2.cpp
+c:\programs\Marcela\Pr1\Pr1_2.cpp(39,16): warning C4018: '<': signed/unsigned mismatch
+c:\programs\Marcela\Pr1\Pr1_2.cpp(53,6): warning C4101: 'i': unreferenced local variable
+  Pr1.vcxproj -> C:\programs\Marcela\Pr1\Debug\Pr1.exe
