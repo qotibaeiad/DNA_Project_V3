@@ -2,25 +2,86 @@
 
 //#include "Pr1_1.cpp"
 std::string remove_extension(const std::string& filename) {
-    // Find the position of the last dot (.)
     size_t last_dot = filename.find_last_of(".");
-    if (last_dot == std::string::npos) return filename; // No extension found, return the full filename
+    if (last_dot == std::string::npos) return filename; 
 
 std::cout << "removed last :-  " << filename.substr(0, last_dot) << std::endl;
     return filename.substr(0, last_dot);  // Return substring before the last dot
 	
 }
 
+std::vector<std::string> extractDNASequences(const std::string& filename) {
+    std::ifstream file(filename);
+    std::vector<std::string> dnaList;
 
+    if (!file.is_open()) {
+        std::cerr << "Error: Unable to open file " << filename << std::endl;
+        return dnaList;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        if (line.empty() || isdigit(line[0]) || line.find("THE BEST") != std::string::npos) {
+            continue;
+        }
+
+        size_t pos = line.find_first_of("0123456789");  
+        if (pos != std::string::npos) {
+            std::string dna = line.substr(0, pos); 
+            dna.erase(std::remove_if(dna.begin(), dna.end(), ::isspace), dna.end());
+            dnaList.push_back(dna);
+        }
+    }
+
+    file.close();
+    return dnaList;
+}
 
 
 int main(int argc, char* argv[]) 
 {
-	if (argc < 2) {
+	if (argc < 3) {
     std::cerr << "Error: No file path provided." << std::endl;
     return 1;  // Exit early
 }
+
+
+// std::vector<std::string> dnaList = extractDNASequences("dna_request\\dna_1737799125621\\list_prim_tripl");
+    
+//     if (dnaList.empty()) {
+//         std::cerr << "No DNA sequences found in the file." << std::endl;
+//         return 0;
+//     }
+
+//     size_t num_sequences = dnaList.size();
+//     std::vector<std::string> primss(2 * num_sequences);  
+
+//     // Store extracted sequences and their complements
+//     for (size_t i = 0; i < num_sequences; ++i) {
+//         primss[i] = dnaList[i];                
+//         primss[num_sequences + i] = dnaList[i]; 
+//     }
+
+//     // Print results
+// 	 int cnt = 0;
+//     std::cout << "Extracted DNA Sequences and Their Complements:\n";
+//     for (size_t i = 0; i < 2 * num_sequences; ++i) {
+
+//         std::cout << "prims[" << i << "] = \"" << primss[i] << "\";\n";
+// 		if (cnt>10){
+// 			return 0;
+// 		}
+// 		cnt++;
+//     }
+
+
+
+
+
+
+
 	const char* file_path1 = argv[1];  // Use file_path1
+	const char* file_path2 = argv[2];
     std::cout << "Processing DNA file NAME: " << file_path1 << std::endl;  // Correct variable name
 
 	Prim1 pp;
@@ -51,7 +112,7 @@ int main(int argc, char* argv[])
 	
 //	fname2 = path1 + "\\s3.fasta";
 //	dna2 = GetFileFasta(fname2);
-
+//fname2 = "C:\\Users\\qotib\\OneDrive\\Desktop\\DNA_Project_V3\\server\blast_results_20250125_191024.txt";
 	fname2 = "SEQs\\Maps\\1\\mp3_c_20";
 	pp.read_map1(fname2,path1);
 	std::cout << "happ" << std::endl; 
@@ -126,6 +187,30 @@ int main(int argc, char* argv[])
 void Prim1::conserv_calc(const std::string& input_file_path)
 {
    //vector<string> prims = getListDNA("list_prime_triple");
+//    std::vector<std::string> dnaList = extractDNASequences("dna_request\\dna_1737799125621\\list_prim_tripl");
+    
+//     if (dnaList.empty()) {
+//         std::cerr << "No DNA sequences found in the file." << std::endl;
+//         return ;
+//     }
+
+//     size_t num_sequences = dnaList.size();
+//     std::vector<std::string> primss(2 * num_sequences);  
+   
+//     for (size_t i = 0; i < num_sequences; ++i) {
+//         primss[i] = dnaList[i];              
+//         primss[num_sequences + i] = dnaList[i]; 
+//     }
+
+// 	int cnt=0;
+//     std::cout << "Extracted DNA Sequences and Their Complements:\n";
+//     for (size_t i = 0; i < 2 * num_sequences; ++i) {
+//         std::cout << "prims[" << i << "] = \"" << primss[i] << "\";\n";
+// 		cnt++;
+// 		if (cnt > 10) {
+//             return;  
+//         }
+//     }
 	string prims[6];
 	prims[0] = "TGATGGCTTTATGGGTAGAATT";
 	prims[1] = "TGTGCCTTTCAACTCTCATG";

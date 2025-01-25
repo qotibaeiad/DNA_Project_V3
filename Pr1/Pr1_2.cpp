@@ -12,7 +12,7 @@ vector<ListFasta> Prim1::GetFileListFasta(string fileName,string path)
 	int i;
 	ifstream myfile(fileName);
 	if (!myfile.is_open())
-		cout << "Unable to open file";
+		cout << "Unable to open file: " << path << "/" << fileName << endl;
 
 	myfile >> a;
 	while (!myfile.eof())

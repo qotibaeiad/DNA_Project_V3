@@ -3,18 +3,19 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const cors = require('cors');
 const path = require('path');
+
 const app = express();
 const port = 3001;
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); // Increase to 50MB or adjust as needed
+app.use(express.json({ limit: '50mb' }));
 
+// Endpoint to process the DNA sequence
 app.post('/process-dna', (req, res) => {
-    const { dnaSequence, dnaSequence2, email } = req.body;
+    const { dnaSequence } = req.body;
 
     if (!dnaSequence) {
-        console.error('❌ Error: DNA sequence is missing in the request');
-        return res.status(400).json({ error: 'DNA sequence is required' });
+        return res.status(400).send('DNA sequence is required');
     }
 
     console.log('Received DNA sequence:', dnaSequence);
@@ -25,56 +26,83 @@ app.post('/process-dna', (req, res) => {
         fs.mkdirSync(dnaRequestDir);
     }
 
-    // Step 2: Create a unique folder for this DNA sequence request
+    // Step 2: Create a unique folder for this request
     const uniqueFolderName = `dna_${Date.now()}`;
     const dnaFolderPath = path.join(dnaRequestDir, uniqueFolderName);
-    if (!fs.existsSync(dnaFolderPath)) {
-        fs.mkdirSync(dnaFolderPath);
-    }
+    fs.mkdirSync(dnaFolderPath);
 
-    // Step 3: Create a FASTA file with the DNA sequence inside the unique folder
-    const fileName = `${uniqueFolderName}.fasta`;  // Just the file name
-    const filePath = path.join(dnaFolderPath, fileName);  // Full path for file creation
+    // Step 3: Write the DNA sequence to a .fasta file
+    const fastaFileName = `${uniqueFolderName}.fasta`;
+    const fastaFilePath = path.join(dnaFolderPath, fastaFileName);
     const fastaContent = `>DNA_sequence\n${dnaSequence}`;
-    fs.writeFileSync(filePath, fastaContent, 'utf8');
+    fs.writeFileSync(fastaFilePath, fastaContent, 'utf8');
 
-    console.log('FASTA file created at:', filePath);
+    console.log('FASTA file created at:', fastaFilePath);
 
-    // Step 4: Call the C++ executable with only the file name (not the full path)
-    const executablePath = './proccess.exe';
-    const fileNameToSend = fileName;  // Sending only the file name
-    const process = spawn(executablePath, [fileNameToSend]);
+    // Step 4: Call the Python script
+    const pythonScriptPath = './blast_process.py';
+    const process = spawn('python', [pythonScriptPath, fastaFilePath]);
 
     let output = '';
     let errorOutput = '';
 
-    // Capture stdout from the C++ process
     process.stdout.on('data', (data) => {
         output += data.toString();
-        console.log('C++ stdout:', data.toString());
+        console.log('Python stdout:', data.toString());
     });
 
-    // Capture stderr from the C++ process
     process.stderr.on('data', (data) => {
         errorOutput += data.toString();
-        console.error('C++ stderr:', data.toString());
+        console.error('Python stderr:', data.toString());
     });
 
-    // After the C++ process finishes
     process.on('close', (code) => {
-        console.log(`C++ program exited with code: ${code}`);
+        console.log(`Python script exited with code: ${code}`);
         if (code !== 0) {
-            console.error(`Error executing C++ program: ${errorOutput || 'No error output captured'}`);
+            console.error(`Error executing Python script: ${errorOutput || 'No error output captured'}`);
             return res.status(500).send('Error processing DNA sequence');
         }
 
-        console.log('Processed DNA:', output.trim());
+        // Step 5: Move the result file to the unique folder
+        const resultFileName = output.trim(); // The result filename from Python output
+        const resultFilePath = path.join(__dirname, resultFileName); // Original location
 
-        // Send the processed DNA result back to the client
-        return res.json({ processedDna: output.trim() });
+        const newResultFileName = `${uniqueFolderName}_blast`;
+        const newResultFilePath = path.join(dnaFolderPath, newResultFileName);
+
+        fs.rename(resultFilePath, newResultFilePath, (err) => {
+            if (err) {
+                console.error('Error moving result file:', err);
+                return res.status(500).send('Error moving result file');
+            }
+
+            console.log(`Moved result file to: ${newResultFilePath}`);
+
+            // Step 6: Call the C++ executable
+            const executablePath = './proccess.exe';
+            const cppProcess = spawn(executablePath, [fastaFileName, newResultFilePath]);
+
+            cppProcess.stdout.on('data', (data) => {
+                console.log('C++ executable output:', data.toString());
+            });
+
+            cppProcess.stderr.on('data', (data) => {
+                console.error('C++ executable error:', data.toString());
+            });
+
+            cppProcess.on('close', (code) => {
+                console.log(`C++ executable exited with code: ${code}`);
+                if (code === 0) {
+                    res.json({ message: 'Successfully processed DNA and sent to C++ executable' });
+                } else {
+                    res.status(500).send('Error processing with C++ executable');
+                }
+            });
+        });
     });
 });
 
+// Start the server
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });

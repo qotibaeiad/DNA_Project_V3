@@ -9,6 +9,9 @@
 #include <iterator> 
 #include <map>
 #include <vector>
+#include <algorithm> // Fix for remove_if
+#include <cctype>    // Fix for isspace
+
 
 
 using namespace std;
