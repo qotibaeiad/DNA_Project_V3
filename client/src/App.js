@@ -127,9 +127,9 @@ function App() {
       alignItems: 'center',
     }}>
       <Container maxWidth="md" style={{ textAlign: 'center' }}>
-        <Typography variant="h3" gutterBottom sx={{ color: 'blue', fontWeight: 'bold' }}>
-          DNA Sequence Processor
-        </Typography>
+      <Typography variant="h3" gutterBottom sx={{ color: '#1976D2', fontWeight: 'bold', textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
+            DNA Sequence Processor
+          </Typography>
 
         <form onSubmit={handleSubmit} style={{ marginBottom: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', maxWidth: '500px', mb: 2 }}>

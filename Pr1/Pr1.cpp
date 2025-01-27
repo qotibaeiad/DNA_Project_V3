@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 
 
 	const char* file_path1 = argv[1];  // Use file_path1
-	const char* file_path2 = argv[2];
+	const char* blast = argv[2];
     std::cout << "Processing DNA file NAME: " << file_path1 << std::endl;  // Correct variable name
 
 	Prim1 pp;
@@ -104,8 +104,8 @@ int main(int argc, char* argv[])
 	//cerr << "dnd" << dna;
 	fname2 = remove_extension(file_path);
 	ofstream outfile(fname2);
-	outfile <<"dna "<< dna1.size()<< "\n" <<dna1;
-	outfile.close();
+	//outfile <<"dna "<< dna1.size()<< "\n" <<dna1;
+	//outfile.close();
 
 	pair<map<string, int>::iterator, bool> ret;
 	map<string, int>::iterator it;
@@ -113,7 +113,8 @@ int main(int argc, char* argv[])
 //	fname2 = path1 + "\\s3.fasta";
 //	dna2 = GetFileFasta(fname2);
 //fname2 = "C:\\Users\\qotib\\OneDrive\\Desktop\\DNA_Project_V3\\server\blast_results_20250125_191024.txt";
-	fname2 = "SEQs\\Maps\\1\\mp3_c_20";
+   // string blastpath = "./";
+	fname2 = blast;
 	pp.read_map1(fname2,path1);
 	std::cout << "happ" << std::endl; 
 	fname2 = "map_list1_c2";
@@ -139,8 +140,7 @@ int main(int argc, char* argv[])
 	outfile.close();
 	
 	pp.select_pairs(dna1, prsz1,path1);
-	std::string result = "DNA processing complete"; // Replace with actual results
-    std::cout << result << std::endl;
+    std::cout << "DNA processing complete " << file_path << std::endl;
 	return 0;
 	//	fname2 = "c2";
 //	outfile.open(fname2);

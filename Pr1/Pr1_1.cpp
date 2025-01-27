@@ -5,18 +5,22 @@
 
 string GetFileFasta(string fileName,string path)
 {
-	string line, dna = "";
-	char buf[1000];
-	ifstream myfile(fileName);
-	myfile.getline(buf, 1000);
-	if (myfile.is_open())
-	{
-		while (myfile >> line)
-			dna += line;
-	}
-	else cout << "Unable to open file";
-	myfile.close();
-	return dna;
+    string line, dna = "";
+    ifstream myfile(fileName);
+    
+    if (myfile.is_open())
+    {
+        while (getline(myfile, line))  // Read the file line by line
+        {
+            dna += line;  // Append each line to the dna string
+        }
+    }
+    else
+    {
+        cout << "Unable to open file";
+    }
+    myfile.close();
+    return dna;
 }
 
 void Prim1::make_map1(string dna1, int prsz1, string path)
