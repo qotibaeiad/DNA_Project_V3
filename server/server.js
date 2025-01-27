@@ -3,6 +3,7 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const cors = require('cors');
 const path = require('path');
+const nodemailer = require('nodemailer');  // For sending emails
 
 const app = express();
 const port = 3001;
@@ -10,12 +11,20 @@ const port = 3001;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+// Setup Gmail email transporter using nodemailer
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'dna.primes@gmail.com',  // Replace with your Gmail address
+        pass: 'tvmv blrk kkbh hmaa',  // Replace with your Gmail app password (ensure it's kept private)
+    },
+});
+
 // Endpoint to process the DNA sequence
 app.post('/process-dna', (req, res) => {
-    const { dnaSequence } = req.body;
-
-    if (!dnaSequence) {
-        return res.status(400).send('DNA sequence is required');
+    const { dnaSequence, dnaSequence2, email } = req.body;  // Client email to send results
+    if (!dnaSequence || !dnaSequence2 || !email) {
+        return res.status(400).send('DNA sequence and client email are required');
     }
 
     console.log('Received DNA sequence:', dnaSequence);
@@ -64,8 +73,8 @@ app.post('/process-dna', (req, res) => {
         }
 
         // Step 5: Move the result file to the unique folder
-        const resultFileName = output.trim(); // The result filename from Python output
-        const resultFilePath = path.join(__dirname, resultFileName); // Original location
+        const resultFileName = output.trim();  // The result filename from Python output
+        const resultFilePath = path.join(__dirname, resultFileName);  // Original location
 
         const newResultFileName = `${uniqueFolderName}_blast`;
         const newResultFilePath = path.join(dnaFolderPath, newResultFileName);
@@ -80,6 +89,7 @@ app.post('/process-dna', (req, res) => {
 
             // Step 6: Call the C++ executable
             const executablePath = './proccess.exe';
+            console.log(newResultFilePath);
             const cppProcess = spawn(executablePath, [fastaFileName, newResultFilePath]);
 
             cppProcess.stdout.on('data', (data) => {
@@ -93,7 +103,36 @@ app.post('/process-dna', (req, res) => {
             cppProcess.on('close', (code) => {
                 console.log(`C++ executable exited with code: ${code}`);
                 if (code === 0) {
-                    res.json({ message: 'Successfully processed DNA and sent to C++ executable' });
+                    // Step 7: Check if the file exists inside the unique folder
+                    const resultFilePath = path.join(dnaFolderPath, 'list_prim_tripl'); // The file we expect from C++
+                    if (fs.existsSync(resultFilePath)) {
+                        // Send the result file as an email attachment
+                        const mailOptions = {
+                            from: 'dna.primes@gmail.com',  // Sender's email address
+                            to: email,  // The client's email address
+                            subject: 'Your DNA Processing Results',
+                            text: 'Your DNA sequence has been processed successfully. Please find the results attached.',
+                            html: '<h1>DNA Primer Results</h1><p>Check the result!</p>',
+                            attachments: [
+                                {
+                                    filename: 'list_prim_tripl',  // Name of the file to be sent in the email
+                                    path: resultFilePath,  // Correct path for the result file
+                                },
+                            ],
+                        };
+
+                        transporter.sendMail(mailOptions, (error, info) => {
+                            if (error) {
+                                console.error('Error sending email:', error);
+                                return res.status(500).send('Error sending email');
+                            }
+                            console.log('Email sent: ' + info.response);
+                            res.json({ message: 'Successfully processed DNA and email sent to client' });
+                        });
+                    } else {
+                        console.error('File not found in the unique folder:', resultFilePath);
+                        res.status(500).send('Processed file not found');
+                    }
                 } else {
                     res.status(500).send('Error processing with C++ executable');
                 }

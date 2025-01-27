@@ -121,21 +121,64 @@ def process_sequence(input_file, max_sequence_length=5000):
     # Split the sequence into chunks
     return split_sequence(sequence)
 
-def write_chunks_to_file(sequence, best_match, output_file):
+def parse_blast_result_detailed(xml_result):
     """
-    Write sequence chunks of 20 characters each, followed by the best match, to a file.
+    Parses the BLAST XML result to check for matches.
+    Returns detailed information: best match ID, percent identity, and bit score.
+    Filters matches based on percent identity > 99% and bit score > 54998.
     """
-    # Split the sequence into chunks of 20 characters each
-    chunks = [sequence[i:i + 20] for i in range(0, len(sequence), 20)]
-    
-    with open(output_file, "w") as file:
-        for chunk in chunks:
-            file.write(f"{chunk} {best_match}\n")
+    if "<BlastOutput_iterations>" not in xml_result:
+        return -1, 0.0, 0.0  # No match found
+
+    matches = []
+    best_match_id = -1
+    percent_identity = 0.0
+    bit_score = 0.0
+    align_len = None
+    identity = 0
+
+    for line in xml_result.splitlines():
+        line = line.strip()
+
+        if "<Hsp_identity>" in line:
+            identity = int(line.split(">")[1].split("<")[0].strip())
+        elif "<Hsp_align-len>" in line:
+            align_len = int(line.split(">")[1].split("<")[0].strip())
+        elif "<Hsp_bit-score>" in line:
+            bit_score = float(line.split(">")[1].split("<")[0].strip())
+
+            # Ensure align_len is not None before calculation
+            if align_len and align_len > 0:
+                percent_identity = (identity / align_len) * 100
+
+            # Filter matches
+            if percent_identity > 99 and bit_score > 54998:
+                matches.append(1)
+
+    if matches:
+        best_match_id = 1  # Indicating a match was found
+
+    return best_match_id, percent_identity, bit_score
+
+
+
+def write_results_to_file(chunks, results, output_file):
+   with open(output_file, "w") as file:
+    sequence_number = 1  # Initialize the sequence number
+    for chunk_id, (chunk, result) in enumerate(zip(chunks, results), start=1):
+        best_match_id, percent_identity, bit_score = parse_blast_result_detailed(result)
+        chunk_parts = [chunk[i:i + 20] for i in range(0, len(chunk), 20)]
+        for part in chunk_parts:
+            file.write(f"{sequence_number},{part},{best_match_id}\n")
+            sequence_number += 1  # Increment the sequence number
+
+
+
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        #print("Error: No file path provided. Please pass the file path as an argument.")
+        print("Error: No file path provided. Please pass the file path as an argument.")
         sys.exit(1)
 
     input_file = sys.argv[1]  # Get the input file path
@@ -150,7 +193,7 @@ if __name__ == "__main__":
         # Submit BLAST query for each chunk
         rid = submit_blast_query(chunk)
         if not rid:
-           # print("Error: Failed to submit BLAST query for chunk.")
+            print("Error: Failed to submit BLAST query for chunk.")
             continue
 
         # Poll for results
@@ -164,18 +207,14 @@ if __name__ == "__main__":
                 print(f"Error occurred while checking status for chunk.")
                 continue
 
-        # Fetch and parse results for the chunk
-        results.append((chunk, fetch_blast_results(rid)))
-        
-    
+        # Fetch and store results for the chunk
+        results.append(fetch_blast_results(rid))
 
     # Step 6: Save results in the desired format
     current_datetime = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_file = f"blast_results_{current_datetime}.txt"
-   
-    for chunk, result in results:
-        best_match = parse_blast_result(result)
-        write_chunks_to_file(chunk, best_match, output_file)
 
+    # Write structured results
+    write_results_to_file(chunks, results, output_file)
 
-    print(output_file)
+    print(f"{output_file}")
