@@ -3,7 +3,8 @@ const { spawn } = require('child_process');
 const fs = require('fs');
 const cors = require('cors');
 const path = require('path');
-const nodemailer = require('nodemailer');  // For sending emails
+const nodemailer = require('nodemailer');
+const archiver = require('archiver');
 
 const app = express();
 const port = 3001;
@@ -20,31 +21,61 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+// Function to compress file into ZIP
+function compressFile(filePath, outputDir, callback) {
+    const zipFilePath = path.join(outputDir, 'results.zip');
+    const output = fs.createWriteStream(zipFilePath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    output.on('close', () => {
+        console.log(`Zip file created: ${archive.pointer()} total bytes`);
+        callback(zipFilePath);
+    });
+
+    archive.pipe(output);
+    archive.file(filePath, { name: 'list_prim_tripl' });
+    archive.finalize();
+}
+
+// Function to send an email with ZIP attachment
+function sendEmail(zipFilePath, recipientEmail, res) {
+    const mailOptions = {
+        from: 'dna.primes@gmail.com',
+        to: recipientEmail,
+        subject: 'Your DNA Processing Results',
+        text: 'Your DNA sequence has been processed successfully. Please find the results attached.',
+        attachments: [{ filename: 'results.zip', path: zipFilePath }],
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email:', error);
+            return res.status(500).send('Error sending email');
+        }
+        console.log('Email sent: ' + info.response);
+        res.json({ message: 'Successfully processed DNA and email sent to client' });
+    });
+}
+
 // Endpoint to process the DNA sequence
 app.post('/process-dna', (req, res) => {
-    const { dnaSequence, dnaSequence2, email } = req.body;  // Client email to send results
+    const { dnaSequence, dnaSequence2, email } = req.body;
     if (!dnaSequence || !dnaSequence2 || !email) {
         return res.status(400).send('DNA sequence and client email are required');
     }
 
     console.log('Received DNA sequence:', dnaSequence);
 
-    // Step 1: Create a parent directory for DNA requests if it doesn't exist
     const dnaRequestDir = path.join(__dirname, 'dna_request');
-    if (!fs.existsSync(dnaRequestDir)) {
-        fs.mkdirSync(dnaRequestDir);
-    }
+    if (!fs.existsSync(dnaRequestDir)) fs.mkdirSync(dnaRequestDir);
 
-    // Step 2: Create a unique folder for this request
     const uniqueFolderName = `dna_${Date.now()}`;
     const dnaFolderPath = path.join(dnaRequestDir, uniqueFolderName);
     fs.mkdirSync(dnaFolderPath);
 
-    // Step 3: Write the DNA sequence to a .fasta file
     const fastaFileName = `${uniqueFolderName}.fasta`;
     const fastaFilePath = path.join(dnaFolderPath, fastaFileName);
-    const fastaContent = `>DNA_sequence\n${dnaSequence}`;
-    fs.writeFileSync(fastaFilePath, fastaContent, 'utf8');
+    fs.writeFileSync(fastaFilePath, `>DNA_sequence\n${dnaSequence}`, 'utf8');
 
     console.log('FASTA file created at:', fastaFilePath);
 
@@ -106,28 +137,9 @@ app.post('/process-dna', (req, res) => {
                     // Step 7: Check if the file exists inside the unique folder
                     const resultFilePath = path.join(dnaFolderPath, 'list_prim_tripl'); // The file we expect from C++
                     if (fs.existsSync(resultFilePath)) {
-                        // Send the result file as an email attachment
-                        const mailOptions = {
-                            from: 'dna.primes@gmail.com',  // Sender's email address
-                            to: email,  // The client's email address
-                            subject: 'Your DNA Processing Results',
-                            text: 'Your DNA sequence has been processed successfully. Please find the results attached.',
-                            html: '<h1>DNA Primer Results</h1><p>Check the result!</p>',
-                            attachments: [
-                                {
-                                    filename: 'list_prim_tripl',  // Name of the file to be sent in the email
-                                    path: resultFilePath,  // Correct path for the result file
-                                },
-                            ],
-                        };
-
-                        transporter.sendMail(mailOptions, (error, info) => {
-                            if (error) {
-                                console.error('Error sending email:', error);
-                                return res.status(500).send('Error sending email');
-                            }
-                            console.log('Email sent: ' + info.response);
-                            res.json({ message: 'Successfully processed DNA and email sent to client' });
+                        console.log('File found, compressing before sending...');
+                        compressFile(resultFilePath, dnaFolderPath, (zipFilePath) => {
+                            sendEmail(zipFilePath, email, res);
                         });
                     } else {
                         console.error('File not found in the unique folder:', resultFilePath);
