@@ -81,7 +81,7 @@ public:
 	bool prim_5_check(string); //checks primer properties to be left
 	int prime_Tm(string); //calculate Tm of the primer
 
-	void select_pairs(string, int, string); //select pairs and after this  triplets of primers
+	void select_pairs(string, int, string, string); //select pairs and after this  triplets of primers
 
 	void find_if_word_in_all_the_files_z1();
 	void conserv_calc(const std::string& input_file_path);

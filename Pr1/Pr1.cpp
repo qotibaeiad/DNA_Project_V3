@@ -40,7 +40,7 @@ std::vector<std::string> extractDNASequences(const std::string& filename) {
 
 int main(int argc, char* argv[]) 
 {
-	if (argc < 3) {
+	if (argc < 4) {
     std::cerr << "Error: No file path provided." << std::endl;
     return 1;  // Exit early
 }
@@ -80,17 +80,19 @@ int main(int argc, char* argv[])
 
 
 
-	const char* file_path1 = argv[1];  // Use file_path1
-	const char* blast = argv[2];
-    std::cout << "Processing DNA file NAME: " << file_path1 << std::endl;  // Correct variable name
+	const char* file_path = argv[1]; 
+	const char* file_path2 = argv[2];
+	const char* blast = argv[3];
+    std::cout << "Processing DNA file NAME: " << file_path << std::endl;  // Correct variable name
+	
 
 	Prim1 pp;
-	pp.conserv_calc(file_path1);
+	pp.conserv_calc(file_path);
 	// cout << "Processing file: " << file_path1 << endl;  // Make sure to print this
 
 	int i,j, prsz1 = 20;
 	string pattern;
-	const char *file_path = argv[1];
+	//const char *file_path = argv[1];
 	 std::cout << "Processing DNA file NAME: " << file_path << std::endl;
     // printf("Processing file: %s\n", file_path);
 	string path1 = "dna_request\\" + remove_extension(file_path)+"\\";
@@ -139,7 +141,7 @@ int main(int argc, char* argv[])
 
 	outfile.close();
 	
-	pp.select_pairs(dna1, prsz1,path1);
+	pp.select_pairs(dna1, prsz1,path1,file_path2);
     std::cout << "DNA processing complete " << file_path << std::endl;
 	return 0;
 	//	fname2 = "c2";

@@ -17,7 +17,7 @@ string GetFileFasta(string fileName,string path)
     }
     else
     {
-        cout << "Unable to open file";
+        std::cerr << "Error: Unable to open file " << fileName << std::endl;
     }
     myfile.close();
     return dna;

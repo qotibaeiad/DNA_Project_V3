@@ -3,46 +3,49 @@
 
 #include "Pr1.h"
 
-vector<ListFasta> Prim1::GetFileListFasta(string fileName,string path)
+vector<ListFasta> Prim1::GetFileListFasta(string fileName, string path)
 {
-	vector<ListFasta> dna_mas;
-	ListFasta lf;
-	char a;
-	char buf[1000];
-	int i;
-	ifstream myfile(fileName);
-	if (!myfile.is_open())
-		cout << "Unable to open file: " << path << "/" << fileName << endl;
+    vector<ListFasta> dna_mas;
+    ListFasta lf;
+    char a;
+    ifstream myfile(fileName);
+    if (!myfile.is_open())
+    {
+        cout << "Unable to open file: " << path << "/" << fileName << endl;
+        return dna_mas;
+    }
 
-	myfile >> a;
-	while (!myfile.eof())
-	{
-		if (a != '>') continue;
-		lf.header = "";
-		lf.dna = "";
-		myfile.getline(buf, 1000);
-		lf.header = buf;
-		while (!myfile.eof())
-		{
-			myfile >> a;
-			if (a != '>')
-				lf.dna += a;
-			else break;
-		}
+    myfile >> a;
+    while (!myfile.eof())
+    {
+        if (a != '>') continue;
+        lf.header = "";
+        lf.dna = "";
+        
+        getline(myfile, lf.header);
+        
+        while (!myfile.eof())
+        {
+            myfile >> a;
+            if (a != '>')
+                lf.dna += a;
+            else 
+                break;
+        }
 
-		dna_mas.push_back(lf);
-	}
-	myfile.close();
+        dna_mas.push_back(lf);
+    }
+    myfile.close();
 
-	fileName = path+"\\list1_c";
-	ofstream outfile(fileName);
-	for (i = 0; i < dna_mas.size(); i++)
-	{
-		outfile << i << ")" << dna_mas[i].header << "\n" << dna_mas[i].dna << "\n";
-	}
+    fileName = path + "\\list1_c";
+    ofstream outfile(fileName);
+    for (size_t i = 0; i < dna_mas.size(); i++)
+    {
+        outfile << i << ")" << dna_mas[i].header << "\n" << dna_mas[i].dna << "\n";
+    }
 
-	outfile.close();
-	return dna_mas;
+    outfile.close();
+    return dna_mas;
 }
 
 void  Prim1::find_words_read_in_mp1_glob(string fileName, int prsz1)
@@ -53,7 +56,7 @@ void  Prim1::find_words_read_in_mp1_glob(string fileName, int prsz1)
 	int i;
 	ifstream myfile(fileName);
 	if (!myfile.is_open())
-		cout << "Unable to open file";
+		std::cerr << "Error: Unable to open file " << fileName << std::endl;
 
 	fileName = "DNA_c";
 	ofstream outfile(fileName);
@@ -93,7 +96,7 @@ void Prim1::read_map1(string fileName, string path)
 	int i;
 	ifstream myfile(fileName);
 	if (!myfile.is_open())
-		cout << "Unable to open file";
+		std::cerr << "Error: Unable to open file " << fileName << std::endl;
 //	cerr << "t2";
 	while (!myfile.eof())
 	{

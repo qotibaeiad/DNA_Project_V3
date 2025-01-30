@@ -73,11 +73,20 @@ app.post('/process-dna', (req, res) => {
     const dnaFolderPath = path.join(dnaRequestDir, uniqueFolderName);
     fs.mkdirSync(dnaFolderPath);
 
+
     const fastaFileName = `${uniqueFolderName}.fasta`;
     const fastaFilePath = path.join(dnaFolderPath, fastaFileName);
     fs.writeFileSync(fastaFilePath, `>DNA_sequence\n${dnaSequence}`, 'utf8');
 
+
+    const uniqueFolderName2 = `dna_${Date.now()+1}`
+    const fastaFileName2 = `${uniqueFolderName2}.txt`;
+    const fastaFilePath2 = path.join(dnaFolderPath, fastaFileName2);
+    fs.writeFileSync(fastaFilePath2, `>DNA_sequence\n${dnaSequence2}`, 'utf8');
+
+
     console.log('FASTA file created at:', fastaFilePath);
+    console.log('FASTA file created at:', fastaFileName2);
 
     // Step 4: Call the Python script
     const pythonScriptPath = './blast_process.py';
@@ -121,7 +130,7 @@ app.post('/process-dna', (req, res) => {
             // Step 6: Call the C++ executable
             const executablePath = './proccess.exe';
             console.log(newResultFilePath);
-            const cppProcess = spawn(executablePath, [fastaFileName, newResultFilePath]);
+            const cppProcess = spawn(executablePath, [fastaFileName, fastaFileName2, newResultFilePath]);
 
             cppProcess.stdout.on('data', (data) => {
                 console.log('C++ executable output:', data.toString());

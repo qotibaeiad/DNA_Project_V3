@@ -2,7 +2,7 @@
 #define _INC_Pr1_4
 
 #include "Pr1.h"
-void Prim1::select_pairs(string dna, int prsz1 ,string path)
+void Prim1::select_pairs(string dna, int prsz1 ,string path ,string path2)
 {
 	int i,j;
 	map<string, int>::iterator it;
@@ -23,7 +23,9 @@ void Prim1::select_pairs(string dna, int prsz1 ,string path)
 	mas1[5] = "CAGTTGCGTCACCAAA";
 
 	prim_pair prp;
-
+	std::cout << "slect pair path1:-   " << path << std::endl;
+	std::cout << "slect pair path2:-   " << path2 << std::endl;
+	std::cout << "slect pair path1 + path2:-   " << ".\\"+path+path2 << std::endl;
 	//delete repeated fragments
 	for (i = 0; i <= dna.size() - prsz1; i++)
 	{
@@ -137,8 +139,11 @@ void Prim1::select_pairs(string dna, int prsz1 ,string path)
 
 	int kmin, j1, i1, t;
 	pattern = "";
-	string path1 = "C:\\Users\\qotib\\OneDrive\\Desktop\\DNA_PROJECT\\Pr1\\SEQs\\";
-	string fname2 = path1 + "seqdump.txt";
+	//string path1 = "C:\\Users\\qotib\\OneDrive\\Desktop\\DNA_PROJECT\\Pr1\\SEQs\\";
+	//string fname2 = path1 + "seqdump.txt";
+	string fname2 = ".\\"+path+path2;
+	std::cout << "slect pair fname2   " << fname2 << std::endl;
+
 	vector<ListFasta> dna_mas = GetFileListFasta(fname2,path);
 	
 	
@@ -196,7 +201,6 @@ void Prim1::select_pairs(string dna, int prsz1 ,string path)
 
 		//for every genome
 		for (i = 41; i < dna_mas.size(); i++)
-//		for (i = 41; i < 50; i++)
 		{
 			kmin = prsz1;
 			//for every position
@@ -254,8 +258,6 @@ void Prim1::select_pairs(string dna, int prsz1 ,string path)
 			if (t < 58 || t > 68) continue;
 			if (t - prim_pair_list1[i].Tm2 < 10) continue;
 			if (t - prim_pair_list1[i].Tm1 < 10) continue;
-//			if (abs(prim_pair_list1[i].Tm2 - t) > dt) continue;
-//			if (abs(prim_pair_list1[i].Tm1 - t) > dt) continue;
 
 			if (prim_pair_list1[i].cons3 == -1)
 				kmin = pos_decr[j] + 1;
