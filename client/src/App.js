@@ -127,7 +127,7 @@ function App() {
       alignItems: 'center',
     }}>
       <Container maxWidth="md" style={{ textAlign: 'center' }}>
-      <Typography variant="h3" gutterBottom sx={{ color: '#1976D2', fontWeight: 'bold', textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}>
+      <Typography variant="h3" gutterBottom sx={{ color: 'rgba(236, 10, 236, 0.8)', fontWeight: 'bold', textShadow: '2px 2px 4px rgba(155, 15, 155, 0.2)' }}>
             DNA Sequence Processor
           </Typography>
 
@@ -166,7 +166,7 @@ function App() {
                   color="secondary"
                   startIcon={<CloudUploadIcon />}
                 >
-                  {fileName1 || 'Choose First File'}
+                  {fileName1 || 'Upload DNA Sequence File'}
                   <input type="file" accept=".fasta" onChange={handleFileChange1} hidden />
                 </Button>
               </Box>
@@ -182,7 +182,7 @@ function App() {
                   color="secondary"
                   startIcon={<CloudUploadIcon />}
                 >
-                  {fileName2 || 'Choose Second File'}
+                  {fileName2 || 'Upload Comparison DNA File'}
                   <input type="file" accept=".fasta" onChange={handleFileChange2} hidden />
                 </Button>
               </Box>

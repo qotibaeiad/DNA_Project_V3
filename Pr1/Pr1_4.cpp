@@ -145,53 +145,6 @@ void Prim1::select_pairs(string dna, int prsz1 ,string path ,string path2)
 	std::cout << "slect pair fname2   " << fname2 << std::endl;
 
 	vector<ListFasta> dna_mas = GetFileListFasta(fname2,path);
-	
-	
-/*
-	for (i1 = 0; i1 < nmas1; i1++)
-	{
-		pattern = mas1[i1];
-		mas2[i1] = 0;
-
-		//for every genome
-		for (i = 41; i < dna_mas.size(); i++)
-//		for (i = 41; i < 50; i++)
-		{
-			kmin = pattern.length();
-			//for every position
-			for (j = 0; j <= dna_mas[i].dna.size() - pattern.length(); j++)
-			{
-				k = 0;
-				for (j1 = 0; j1 < pattern.length(); j1++)
-				{
-					if (dna_mas[i].dna[j + j1] != pattern[j1])
-					{
-						k++;
-						if (k >= kmin) break;
-					}
-				}//j1
-				if (k < kmin) kmin = k;
-			}//j
-
-			mas2[i1] += kmin;
-		}
-	}
-
-	outfile.open("six_seq");
-	//	outfile << dc << "\n";
-
-	for (i = 0; i < nmas1; i++)
-	{
-		outfile << i + 1 << " " << mas1[i] << " " << mas1[i].length() << " " << mas2[i] 
-			<< " " << mas2[i]/mas1[i].length() << "\n";
-	}
-	
-	outfile.close();
-
-*/
-
-// 	return;
-
 	//for every primer
 	for (i1 = 0; i1 <= dna.size() - prsz1; i1++)
 	{
